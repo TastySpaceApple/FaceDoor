@@ -10,19 +10,23 @@ class FaceRecognizer:
         self.faces = []
 
     def addFace(self, imgData):
-        faceId = postDetect(imgData)
+        faceId = self.postDetect(imgData)
         if faceId != None:
-            self.faces.push(faceId)
+            self.faces.append(faceId)
 
     def recognizeFace(self, imgData):
-        faceId = postDetect(imgData)
-        for knownFaceId in faces:
-            res = postVerify(faceId, knownFaceId)
-            if res.IsIdentical:
+	if len(self.faces) == 0:
+	    return False
+
+        faceId = self.postDetect(imgData)
+        for knownFaceId in self.faces:
+            res = self.postVerify(faceId, knownFaceId)
+	    print res
+            if res['isIdentical']:
                 return True
         return False
 
-    def postDetect(imgData, dataFormat='octet-stream'):
+    def postDetect(self, imgData, dataFormat='octet-stream'):
         params = "returnFaceId=true&returnFaceLandmarks=false&returnFaceAttributes=age"
         url = "https://api.projectoxford.ai/face/v1.0/detect?" + params
 
@@ -38,8 +42,8 @@ class FaceRecognizer:
         else:
             return None
         
-    def postVerify(faceId1, faceId2):
-        data = json.loads(
+    def postVerify(self, faceId1, faceId2):
+        data = json.dumps(
                 {'faceId1': faceId1, 'faceId2': faceId2}
             )
         url = "https://api.projectoxford.ai/face/v1.0/verify"

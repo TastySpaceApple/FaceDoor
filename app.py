@@ -1,4 +1,4 @@
-#import cv2
+import cv2
 import sys
 import os
 import msface
@@ -16,52 +16,57 @@ cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, 1);
 framecount = 0
 
 faces = []
-scaleFactor = 6.25
+scaleFactor = 4.0
 
 hasFaces = False
+rectColor = (255,255,255)
 
 while True:
     ret, frame = video_capture.read()
 
-    if framecount == 10): 
+    if framecount == 10: 
+        print "scanning for faces"
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         gray = cv2.resize(gray, (0,0), fx=1.0/scaleFactor, fy=1.0/scaleFactor)
 
         faces = faceCascade.detectMultiScale(
             gray,
-            scaleFactor=1.2,
+            scaleFactor=1.1,
             minNeighbors=5
         )
-        if len(faces) > 0 and !hasFaces: # New face detected
+        print "faces found : %d " % len(faces)
+        if len(faces) > 0 and not hasFaces: # New face detected
             ret, buf = cv2.imencode( '.jpg', frame )
-            if faceRecognizer.recognize(buf):
-                cv2.putText(frame, "Approved", (50, 20), cv2.FONT_HERSHEY_PLAIN, 1, (0,255,0))
-            else
-                cv2.putText(frame, "Denied", (50, 20), cv2.FONT_HERSHEY_PLAIN, 1, (255,0,0))
+            if faceRecognizer.recognizeFace(buf):
+		rectColor = (0,255,0)
+                #cv2.putText(frame, "Approved", (50, 20), cv2.FONT_HERSHEY_PLAIN, 1, (0,255,0))
+            else:
+		rectColor = (0,0,255)
+                #cv2.putText(frame, "Denied", (50, 20), cv2.FONT_HERSHEY_PLAIN, 1, (255,0,0))
         hasFaces = len(faces) > 0
         framecount = 0
     else:
-       framecount += 1
+       framecount = framecount + 1
        
     # Draw a rectangle around the faces
     for (x, y, w, h) in faces:
-        x = x * scaleFactor
-        y = y * scaleFactor
-        w = w * scaleFactor
-        h = h * scaleFactor
+        x = int(x * scaleFactor)
+        y = int(y * scaleFactor)
+        w = int(w * scaleFactor)
+        h = int(h * scaleFactor)
         face = gray[y: y + h, x: x + h]
-        cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+        cv2.rectangle(frame, (x, y), (x+w, y+h), rectColor, 2)
         cv2.putText(frame, str("face"), (x+2, y+h-2), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255))
         break;
     
     # Display the resulting frame
     cv2.imshow('Video', frame)
-    key = cv2.waitKey(25);
+    key = cv2.waitKey(1);
     if key == 27:
         break  # esc to quit
     elif key == ord('s'):
         ret, buf = cv2.imencode( '.jpg', frame )
-        faceRecognizer.addFace(buf, img)
+        faceRecognizer.addFace(buf)
 
 
 ##    if face is not None:
@@ -76,4 +81,4 @@ while True:
 # When everything is done, release the capture
 video_capture.release()
 cv2.destroyAllWindows()
-print "Completed. %d images were taken" % imgindex
+#print "Completed. %d images were taken" % imgindex
