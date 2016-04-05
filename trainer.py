@@ -24,30 +24,42 @@ imgindex = 0
 
 
 cv2.namedWindow("Video", cv2.WINDOW_NORMAL);
-cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN);
+cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, 1);
 
+framecount = 0
 
 while True:
     # Capture frame-by-frame
     ret, frame = video_capture.read()
-    
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    #frame = cv2.resize(frame, (0,0), fx=.1, fy=.1)
 
-    faces = faceCascade.detectMultiScale(
-        gray,
-        scaleFactor=1.1,
-        minNeighbors=5
-    )
+    faces = []
+    if(framecount == 15):    
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        gray = cv2.resize(gray, (0,0), fx=.2, fy=.2)
+
+        faces = faceCascade.detectMultiScale(
+            gray,
+            scaleFactor=1.2,
+            minNeighbors=5
+        )
+        framecount = 0
+    else:
+       framecount += 1
     # Draw a rectangle around the faces
     for (x, y, w, h) in faces:
+        x = x * 5
+        y = y * 5
+        w = w * 5
+        h = h * 5
         face = gray[y: y + h, x: x + h]
         #print "Face size in image: %d x %d"  % (w, h)
         cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
         cv2.putText(frame, str("face"), (x+2, y+h-2), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255))
         break;
-
+    
     # Display the resulting frame
-    cv2.imshow('ad', frame)
+    cv2.imshow('Video', frame)
     if cv2.waitKey(1) == 27:
         break  # esc to quit
 
