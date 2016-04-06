@@ -1,20 +1,28 @@
 import urllib2
 import json
-
+from threading import Thread
 
 key1 = "d8731dcbe24341e695cefb9ca06e440b";
 key2 = "7710709d37e64624ae15c3a9d93c9a43";
 
 class FaceRecognizer:
+    STAGE_WAITING = 0
+    STAGE_APPROVED = 1
+    STAGE_DENIED = 2
     def __init__(self):
         self.faces = []
+        self.stage = 0;
 
+    def clean(self):
+        self.stage = 0;
+        
     def addFace(self, imgData):
         faceId = self.postDetect(imgData)
         if faceId != None:
             self.faces.append(faceId)
 
     def recognizeFace(self, imgData):
+        self.stage = STAGE_WAITING
 	if len(self.faces) == 0:
 	    return False
 
@@ -23,8 +31,15 @@ class FaceRecognizer:
             res = self.postVerify(faceId, knownFaceId)
 	    print res
             if res['isIdentical']:
+                self.stage = STAGE_APPROVED
                 return True
+            else:
+                self.stage = STAGE_DENIED
         return False
+
+    def recognizeFaceAsync(self, imgData):
+        thread = Thread(target = self.recognizeFace, args = (imgData))
+        thread.start()
 
     def postDetect(self, imgData, dataFormat='octet-stream'):
         params = "returnFaceId=true&returnFaceLandmarks=false&returnFaceAttributes=age"

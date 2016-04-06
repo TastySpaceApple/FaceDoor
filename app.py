@@ -25,7 +25,7 @@ faces = []
 scaleFactor = 4.0
 
 hasFaces = False
-rectColor = (255,255,255)
+colors = [(0,255,255), (0,255,0), (0,0,255)]
 
 def stopBlinking():
     GPIO.setup(outPin, GPIO.IN)
@@ -34,7 +34,7 @@ while True:
     ret, frame = video_capture.read()
 
     if framecount == 10: 
-        print "scanning for faces"
+        #print "scanning for faces"
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         gray = cv2.resize(gray, (0,0), fx=1.0/scaleFactor, fy=1.0/scaleFactor)
 
@@ -43,20 +43,14 @@ while True:
             scaleFactor=1.1,
             minNeighbors=5
         )
-        print "faces found : %d " % len(faces)
+        #print "faces found : %d " % len(faces)
         if len(faces) > 0 and not hasFaces: # New face detected
             ret, buf = cv2.imencode( '.jpg', frame )
-            rectColor = (255,255,255)
-            if faceRecognizer.recognizeFace(buf):
-                
-                GPIO.setup(outPin, GPIO.OUT)
-                threading.Timer(10.0, stopBlinking).start()
-                
-		rectColor = (0,255,0)
-                #cv2.putText(frame, "Approved", (50, 20), cv2.FONT_HERSHEY_PLAIN, 1, (0,255,0))
-            else:
-		rectColor = (0,0,255)
-                #cv2.putText(frame, "Denied", (50, 20), cv2.FONT_HERSHEY_PLAIN, 1, (255,0,0))
+            rectColor = (0,255,255)
+            faceRecognizer.recognizeFaceAsync(buf)
+	elif len(faces) == 0:
+            faceRecognizer.clean()
+            
         hasFaces = len(faces) > 0
         framecount = 0
     else:
@@ -64,6 +58,11 @@ while True:
        
     # Draw a rectangle around the faces
     for (x, y, w, h) in faces:
+        rectColor = colors[faceRecognizer.stage]
+        if faceRecognizer.stage == FaceRecognizer.STAGE_APPROVED:
+            GPIO.setup(outPin, GPIO.OUT)
+        else
+            GPIO.setup(outPin, GPIO.IN)
         x = int(x * scaleFactor)
         y = int(y * scaleFactor)
         w = int(w * scaleFactor)
