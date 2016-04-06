@@ -22,23 +22,27 @@ cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, 1);
 framecount = 0
 
 faces = []
-scaleFactor = 4.0
+scaleFactor = 2.0
 
 hasFaces = False
 colors = [(0,255,255), (0,255,0), (0,0,255)]
 
+approved = False
 def stopBlinking():
+    global approved
+    print "BLINK COMPLETE. SETTING GPIO 17 TO FALSE"
     GPIO.setup(outPin, GPIO.IN)
     approved = False
     faceRecognizer.clean()
 
-approved = False
-
 while True:
     ret, frame = video_capture.read()
-    if framecount == 10:
+    
+    if framecount == 3:
         
         if not approved and faceRecognizer.stage == msface.FaceRecognizer.STAGE_APPROVED:
+            global approved
+	    print "APPROVING. SET GPIO to TRUE"
             approved = True
             GPIO.setup(outPin, GPIO.OUT)
             threading.Timer(10, stopBlinking).start()
