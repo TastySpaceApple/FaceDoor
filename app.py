@@ -2,6 +2,12 @@ import cv2
 import sys
 import os
 import msface
+import RPi.GPIO as GPIO
+import threading
+
+GPIO.setmode(GPIO.BCM)
+outPin = 17
+GPIO.setup(outPin, GPIO.IN)
 
 faceRecognizer = msface.FaceRecognizer()
 
@@ -21,6 +27,9 @@ scaleFactor = 4.0
 hasFaces = False
 rectColor = (255,255,255)
 
+def stopBlinking():
+    GPIO.setup(outPin, GPIO.IN)
+
 while True:
     ret, frame = video_capture.read()
 
@@ -37,7 +46,12 @@ while True:
         print "faces found : %d " % len(faces)
         if len(faces) > 0 and not hasFaces: # New face detected
             ret, buf = cv2.imencode( '.jpg', frame )
+            rectColor = (255,255,255)
             if faceRecognizer.recognizeFace(buf):
+                
+                GPIO.setup(outPin, GPIO.OUT)
+                threading.Timer(10.0, stopBlinking).start()
+                
 		rectColor = (0,255,0)
                 #cv2.putText(frame, "Approved", (50, 20), cv2.FONT_HERSHEY_PLAIN, 1, (0,255,0))
             else:
