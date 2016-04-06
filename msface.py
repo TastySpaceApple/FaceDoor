@@ -14,7 +14,7 @@ class FaceRecognizer:
         self.stage = 0;
 
     def clean(self):
-        self.stage = 0;
+        self.stage = self.STAGE_WAITING;
         
     def addFace(self, imgData):
         faceId = self.postDetect(imgData)
@@ -22,7 +22,7 @@ class FaceRecognizer:
             self.faces.append(faceId)
 
     def recognizeFace(self, imgData):
-        self.stage = STAGE_WAITING
+        self.stage = self.STAGE_WAITING
 	if len(self.faces) == 0:
 	    return False
 
@@ -31,14 +31,14 @@ class FaceRecognizer:
             res = self.postVerify(faceId, knownFaceId)
 	    print res
             if res['isIdentical']:
-                self.stage = STAGE_APPROVED
+                self.stage = self.STAGE_APPROVED
                 return True
             else:
-                self.stage = STAGE_DENIED
+                self.stage = self.STAGE_DENIED
         return False
 
     def recognizeFaceAsync(self, imgData):
-        thread = Thread(target = self.recognizeFace, args = (imgData))
+        thread = Thread(target = self.recognizeFace, args = [imgData])
         thread.start()
 
     def postDetect(self, imgData, dataFormat='octet-stream'):

@@ -40,15 +40,15 @@ while True:
 
         faces = faceCascade.detectMultiScale(
             gray,
-            scaleFactor=1.1,
-            minNeighbors=5
+            scaleFactor=1.2,
+            minNeighbors=3
         )
         #print "faces found : %d " % len(faces)
         if len(faces) > 0 and not hasFaces: # New face detected
             ret, buf = cv2.imencode( '.jpg', frame )
             rectColor = (0,255,255)
             faceRecognizer.recognizeFaceAsync(buf)
-	elif len(faces) == 0:
+	if len(faces) == 0:
             faceRecognizer.clean()
             
         hasFaces = len(faces) > 0
@@ -59,9 +59,9 @@ while True:
     # Draw a rectangle around the faces
     for (x, y, w, h) in faces:
         rectColor = colors[faceRecognizer.stage]
-        if faceRecognizer.stage == FaceRecognizer.STAGE_APPROVED:
+        if faceRecognizer.stage == msface.FaceRecognizer.STAGE_APPROVED:
             GPIO.setup(outPin, GPIO.OUT)
-        else
+        else:
             GPIO.setup(outPin, GPIO.IN)
         x = int(x * scaleFactor)
         y = int(y * scaleFactor)
