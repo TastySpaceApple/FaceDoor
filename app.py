@@ -29,11 +29,20 @@ colors = [(0,255,255), (0,255,0), (0,0,255)]
 
 def stopBlinking():
     GPIO.setup(outPin, GPIO.IN)
+    approved = False
+    faceRecognizer.clean()
+
+approved = False
 
 while True:
     ret, frame = video_capture.read()
-
-    if framecount == 10: 
+    if framecount == 10:
+        
+        if not approved and faceRecognizer.stage == msface.FaceRecognizer.STAGE_APPROVED:
+            approved = True
+            GPIO.setup(outPin, GPIO.OUT)
+            threading.Timer(10, stopBlinking).start()
+            
         #print "scanning for faces"
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         gray = cv2.resize(gray, (0,0), fx=1.0/scaleFactor, fy=1.0/scaleFactor)
@@ -59,10 +68,6 @@ while True:
     # Draw a rectangle around the faces
     for (x, y, w, h) in faces:
         rectColor = colors[faceRecognizer.stage]
-        if faceRecognizer.stage == msface.FaceRecognizer.STAGE_APPROVED:
-            GPIO.setup(outPin, GPIO.OUT)
-        else:
-            GPIO.setup(outPin, GPIO.IN)
         x = int(x * scaleFactor)
         y = int(y * scaleFactor)
         w = int(w * scaleFactor)
