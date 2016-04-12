@@ -36,6 +36,12 @@ approved = False
 
 processing = False
 
+for filename in os.listdir("references"):
+    img = cv2.imread(os.path.join("references", filename))
+    cv2.imshow("Video", img)
+    faceRecognizer.addFace(img)
+    cv2.waitKey(1)
+
 def stopBlinking():
     global approved
     print "BLINK COMPLETE. SETTING GPIO 17 TO FALSE"
@@ -50,6 +56,8 @@ def clean():
 while True:
     ret, frame = video_capture.read()
 
+    faceImg = frame.copy()
+               
     h,w,c = frame.shape;
     midx = w / 2.0;
     midy = h / 2.0;
@@ -107,8 +115,8 @@ while True:
     elif key == ord('s'):
         filename = time.strftime("%Y%m%d-%H%M%S") + ".png";
         filepath = os.path.join("references", filename)
-        cv2.imwrite(filepath, frame)
-        ret, buf = cv2.imencode( '.png', frame )
+        cv2.imwrite(filepath, faceImg)
+        ret, buf = cv2.imencode( '.png', faceImg )
         faceRecognizer.addFace(buf)
 
 # When everything is done, release the capture
