@@ -6,15 +6,16 @@ key1 = "d8731dcbe24341e695cefb9ca06e440b";
 key2 = "7710709d37e64624ae15c3a9d93c9a43";
 
 class FaceRecognizer:
-    STAGE_WAITING = 0
-    STAGE_APPROVED = 1
-    STAGE_DENIED = 2
+    STAGE_WAITING = 1
+    STAGE_APPROVED = 2
+    STAGE_DENIED = 3
+    STAGE_IDLE = 0
     def __init__(self):
         self.faces = []
         self.stage = 0;
 
     def clean(self):
-        self.stage = self.STAGE_WAITING;
+        self.stage = self.STAGE_IDLE;
         
     def addFace(self, imgData):
         faceId = self.postDetect(imgData)
@@ -23,10 +24,8 @@ class FaceRecognizer:
 
     def recognizeFace(self, imgData):
         self.stage = self.STAGE_WAITING
-	if len(self.faces) == 0:
-	    return False
-
-        faceId = self.postDetect(imgData)
+	if len(self.faces) > 0:
+            faceId = self.postDetect(imgData)
         for knownFaceId in self.faces:
             res = self.postVerify(faceId, knownFaceId)
 	    print res
@@ -35,6 +34,7 @@ class FaceRecognizer:
                 return True
             else:
                 self.stage = self.STAGE_DENIED
+        self.stage = self.STAGE_DENIED
         return False
 
     def recognizeFaceAsync(self, imgData):

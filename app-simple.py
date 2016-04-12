@@ -17,7 +17,7 @@ faceCascade = cv2.CascadeClassifier(cascPath)
 
 video_capture = cv2.VideoCapture(0)
 
-cv2.namedWindow("Video", cv2.WINDOW_OPENGL);
+cv2.namedWindow("Video", cv2.WINDOW_NORMAL);
 #cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, 1);
 
 framecount = 0
@@ -25,10 +25,10 @@ framecount = 0
 faces = []
 scaleFactor = 2.0
 
-rectColor = (0,255,255)
+colors = [(100,100,100), (0,255, 255), (0,255, 0), (0,0, 255)]
 
-rectRadius = 60
-rectDetectionAccuracy = 20
+rectRadius = 100
+rectDetectionAccuracy = 5
 
 lastRect = None
 
@@ -43,6 +43,10 @@ def stopBlinking():
     approved = False
     faceRecognizer.clean()
 
+def clean():
+    faceRecognizer.clean()
+    processing = False
+
 while True:
     ret, frame = video_capture.read()
 
@@ -55,10 +59,13 @@ while True:
     endy = int(midy + rectRadius/2)
 
     rectData = frame[starty:endy, startx:endx]
-    cv2.rectangle(frame, (startx, starty), (endx, endy), colors[faceRecognizer.stage], 2)
+    cv2.rectangle(frame, (0, 0), (10, 10), colors[faceRecognizer.stage], 2)
 
-    if lastRect != None and not processing:
+    if lastRect != None and faceRecognizer.stage == 0:
         diff = cv2.absdiff(lastRect, rectData)
+        ret, diff = cv2.threshold(diff, 100, 255, cv2.THRESH_BINARY)
+        
+        #cv2.imshow("Video", diff)
         countPixels = 0
         sumPixels = 0
         x = 0
@@ -66,15 +73,19 @@ while True:
         while x < rectRadius:
             y = 0
             while y < rectRadius:
-                sumPixels += diff[x,y]
+                #print(lastRect[x,y] - rectData[x,y])
+                sumPixels += diff[y,x][0]#abs(lastRect[y,x] - rectData[y,x])
                 countPixels += 1
                 y = y + rectDetectionAccuracy
             x = x + rectDetectionAccuracy
 
-        if sumPixels[0] > 100:
+        print(sumPixels)
+        if sumPixels > 2000:
+            print("HIT")
 	    ret, buf = cv2.imencode( '.jpg', frame )
             faceRecognizer.recognizeFaceAsync(buf)
             processing = True
+            threading.Timer(5, clean).start()
 
     if not approved and faceRecognizer.stage == msface.FaceRecognizer.STAGE_APPROVED:
         global approved
@@ -82,6 +93,7 @@ while True:
         approved = True
         GPIO.setup(outPin, GPIO.OUT)
         threading.Timer(10, stopBlinking).start()
+    "print(faceRecognizer.stage)"
             
 
     lastRect = rectData
@@ -95,7 +107,7 @@ while True:
     elif key == ord('s'):
         filename = time.strftime("%Y%m%d-%H%M%S") + ".png";
         filepath = os.path.join("references", filename)
-        cv2.imwrite(filepath, face)
+        cv2.imwrite(filepath, frame)
         ret, buf = cv2.imencode( '.png', frame )
         faceRecognizer.addFace(buf)
 

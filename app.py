@@ -17,7 +17,7 @@ faceCascade = cv2.CascadeClassifier(cascPath)
 video_capture = cv2.VideoCapture(0)
 
 cv2.namedWindow("Video", cv2.WINDOW_NORMAL);
-cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, 1);
+#cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, 1);
 
 framecount = 0
 
@@ -33,6 +33,9 @@ def stopBlinking():
     print "BLINK COMPLETE. SETTING GPIO 17 TO FALSE"
     GPIO.setup(outPin, GPIO.IN)
     approved = False
+    faceRecognizer.clean()
+
+def clean():
     faceRecognizer.clean()
 
 while True:
@@ -57,10 +60,11 @@ while True:
             minNeighbors=3
         )
         #print "faces found : %d " % len(faces)
-        if len(faces) > 0 and not hasFaces: # New face detected
+        if faceRecognizer.stage != 0 and len(faces) > 0 and not hasFaces: # New face detected
             ret, buf = cv2.imencode( '.jpg', frame )
             rectColor = (0,255,255)
             faceRecognizer.recognizeFaceAsync(buf)
+            threading.Timer(5, clean).start()
 	if len(faces) == 0:
             faceRecognizer.clean()
             
