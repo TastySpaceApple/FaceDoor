@@ -58,20 +58,23 @@ while True:
     cv2.rectangle(frame, (startx, starty), (endx, endy), rectColor, 2)
 
     if lastRect != None:
-        #print cv2.absdiff(lastRect, rectData)
-        countPixels, sumPixels = 0
+        diff = cv2.absdiff(lastRect, rectData)
+        countPixels = 0
+        sumPixels = 0
         x = 0
         y = 0
         while x < rectRadius:
             y = 0
             while y < rectRadius:
-                sumPixels += abs(lastRect[x,y] - rectData[x,y])
+                sumPixels += diff[x,y]
                 countPixels += 1
                 y = y + rectDetectionAccuracy
             x = x + rectDetectionAccuracy
 
-        avgPixelDiff = sumPixels / countPixels
-        print  avgPixelDiff
+        if(sumPixels[0] > 100):
+		print("motion")#avgPixelDiff = sumPixels / countPixels
+        #if( avgPixelDiff[0] > 50):
+        #     print avgPixelDiff
 
     lastRect = rectData
     # Display the resulting frame
