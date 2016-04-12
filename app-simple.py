@@ -27,7 +27,8 @@ scaleFactor = 2.0
 
 rectColor = (0,255,255)
 
-rectRadius = 10
+rectRadius = 60
+rectDetectionAccuracy = 20
 
 lastRect = None
 
@@ -57,7 +58,20 @@ while True:
     cv2.rectangle(frame, (startx, starty), (endx, endy), rectColor, 2)
 
     if lastRect != None:
-        print cv2.absdiff(lastRect, rectData).size
+        #print cv2.absdiff(lastRect, rectData)
+        countPixels, sumPixels = 0
+        x = 0
+        y = 0
+        while x < rectRadius:
+            y = 0
+            while y < rectRadius:
+                sumPixels += abs(lastRect[x,y] - rectData[x,y])
+                countPixels += 1
+                y = y + rectDetectionAccuracy
+            x = x + rectDetectionAccuracy
+
+        avgPixelDiff = sumPixels / countPixels
+        print  avgPixelDiff
 
     lastRect = rectData
     # Display the resulting frame
