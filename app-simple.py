@@ -25,7 +25,7 @@ framecount = 0
 faces = []
 scaleFactor = 2.0
 
-
+rectColor = (0,255,255)
 
 rectRadius = 10
 
@@ -45,15 +45,19 @@ def stopBlinking():
 while True:
     ret, frame = video_capture.read()
 
-    imgSize = frame.size();
-    midx = imgSize.width / 2.0;
-    midy = imgSize.height / 2.0;
+    h,w,c = frame.shape;
+    midx = w / 2.0;
+    midy = h / 2.0;
+    startx = int(midx - rectRadius/2)
+    endx = int(midx + rectRadius/2)
+    starty = int(midy - rectRadius/2)
+    endy = int(midy + rectRadius/2)
 
-    rectData = frame[midy - rectRadius/2 : midy + rectRadius/2, midx - rectRadius/2 : midx + rectRadius/2]
-    cv2.rectangle(frame, (midx - rectRadius/2, midy - rectRadius/2), (midx + rectRadius/2, midy + rectRadius/2), rectColor, 2)
+    rectData = frame[starty:endy, startx:endx]
+    cv2.rectangle(frame, (startx, starty), (endx, endy), rectColor, 2)
 
     if lastRect != None:
-        print cv2.absdiff(lastRect, rectData)
+        print cv2.absdiff(lastRect, rectData).size
 
     lastRect = rectData
     # Display the resulting frame
