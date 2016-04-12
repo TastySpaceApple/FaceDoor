@@ -18,7 +18,7 @@ faceCascade = cv2.CascadeClassifier(cascPath)
 video_capture = cv2.VideoCapture(0)
 
 cv2.namedWindow("Video", cv2.WINDOW_NORMAL);
-cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, 1);
+#cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, 1);
 
 framecount = 0
 
@@ -38,11 +38,9 @@ processing = False
 
 for filename in os.listdir("references"):
     img = cv2.imread(os.path.join("references", filename))
-    ret, buf = cv2.imencode('.png', img)
     cv2.imshow("Video", img)
-    cv2.waitKey(100)
-    faceRecognizer.addFace(buf)
-    cv2.waitKey(1000)
+    faceRecognizer.addFace(img)
+    cv2.waitKey(1)
 
 def stopBlinking():
     global approved
@@ -54,9 +52,6 @@ def stopBlinking():
 def clean():
     faceRecognizer.clean()
     processing = False
-
-global moved
-moved = False
 
 while True:
     ret, frame = video_capture.read()
@@ -72,7 +67,7 @@ while True:
     endy = int(midy + rectRadius/2)
 
     rectData = frame[starty:endy, startx:endx]
-    cv2.rectangle(frame, (startx, starty), (endx, endy), colors[faceRecognizer.stage], 2)
+    cv2.rectangle(frame, (0, 0), (10, 10), colors[faceRecognizer.stage], 2)
 
     if lastRect != None and faceRecognizer.stage == 0:
         diff = cv2.absdiff(lastRect, rectData)
@@ -94,11 +89,8 @@ while True:
 
         print(sumPixels)
         if sumPixels > 2000:
-            moved = True
-        elif moved:
-            moved = False
             print("HIT")
-	    ret, buf = cv2.imencode( '.jpg', faceImg )
+	    ret, buf = cv2.imencode( '.jpg', frame )
             faceRecognizer.recognizeFaceAsync(buf)
             processing = True
             threading.Timer(5, clean).start()
@@ -108,7 +100,8 @@ while True:
         print "APPROVING. SET GPIO to TRUE"
         approved = True
         GPIO.setup(outPin, GPIO.OUT)
-        threading.Timer(5, stopBlinking).start()
+        threading.Timer(10, stopBlinking).start()
+    "print(faceRecognizer.stage)"
             
 
     lastRect = rectData
