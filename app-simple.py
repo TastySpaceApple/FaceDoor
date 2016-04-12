@@ -17,7 +17,7 @@ faceCascade = cv2.CascadeClassifier(cascPath)
 
 video_capture = cv2.VideoCapture(0)
 
-cv2.namedWindow("Video", cv2.WINDOW_NORMAL);
+cv2.namedWindow("Video", cv2.WINDOW_OPENGL);
 #cv2.setWindowProperty("Video", cv2.WND_PROP_FULLSCREEN, 1);
 
 framecount = 0
@@ -55,9 +55,9 @@ while True:
     endy = int(midy + rectRadius/2)
 
     rectData = frame[starty:endy, startx:endx]
-    cv2.rectangle(frame, (startx, starty), (endx, endy), rectColor, 2)
+    cv2.rectangle(frame, (startx, starty), (endx, endy), colors[faceRecognizer.stage], 2)
 
-    if lastRect != None:
+    if lastRect != None and not processing:
         diff = cv2.absdiff(lastRect, rectData)
         countPixels = 0
         sumPixels = 0
@@ -71,14 +71,24 @@ while True:
                 y = y + rectDetectionAccuracy
             x = x + rectDetectionAccuracy
 
-        if(sumPixels[0] > 100):
-		print("motion")#avgPixelDiff = sumPixels / countPixels
-        #if( avgPixelDiff[0] > 50):
-        #     print avgPixelDiff
+        if sumPixels[0] > 100:
+	    ret, buf = cv2.imencode( '.jpg', frame )
+            faceRecognizer.recognizeFaceAsync(buf)
+            processing = True
+
+    if not approved and faceRecognizer.stage == msface.FaceRecognizer.STAGE_APPROVED:
+        global approved
+        print "APPROVING. SET GPIO to TRUE"
+        approved = True
+        GPIO.setup(outPin, GPIO.OUT)
+        threading.Timer(10, stopBlinking).start()
+            
 
     lastRect = rectData
+    
     # Display the resulting frame
     cv2.imshow('Video', frame)
+    
     key = cv2.waitKey(1);
     if key == 27:
         break  # esc to quit
