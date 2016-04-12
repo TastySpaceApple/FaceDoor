@@ -44,7 +44,7 @@ def get_images_and_labels(path):
     return images, labels
 
 # Path to the Yale Dataset
-path = './references'
+path = './faces'
 # Call the get_images_and_labels function and get the face images and the 
 # corresponding labels
 print "Loading images"
@@ -74,6 +74,7 @@ while True:
         cv2.putText(frame, str(conf) + "%", (x+2, y+h-2), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255))
         cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
         
+    cv2.imshow("Video", gray)    
     key = cv2.waitKey(1) & 0xFF
     if key == ord('q'):
         break
